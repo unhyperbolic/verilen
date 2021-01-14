@@ -127,19 +127,6 @@ class SpineEngine(McomplexEngine):
                   for v in [simplex.V0, simplex.V1, simplex.V2] ],
                 info.offset)
 
-    def _add_edge_centers_using_cusp_cross_section(self):
-        for edge in self.mcomplex.Edges:
-            corner = edge.Corners[0]
-            tet = corner.Tetrahedron
-            e = corner.Subsimplex
-            v0 = simplex.Tail[e]
-            v1 = simplex.Head[e]
-            v2 = simplex.Tail[simplex.OppositeEdge[e]]
-            face = v0 | v1 | v2
-            edge.midPoint = compute_midpoint_two_horospheres_from_triangle(
-                [ tet.Class[v].IdealPoint for v in [v0, v1, v2]],
-                [ tet.horotriangles[v].lengths[face] for v in [v0, v1]])
-
     def _check_consistency(self, epsilon = 1e-6):
         for tet in self.mcomplex.Tetrahedra:
             for perm in t3m.Perm4.S4():
