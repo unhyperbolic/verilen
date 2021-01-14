@@ -1,0 +1,2 @@
+from upperHalfspace import finiteIdealTriangleDistanceEngine
+finiteIdealTriangleDistanceEngine._FiniteIdealTriangleDistanceEngineTester().run_tests()

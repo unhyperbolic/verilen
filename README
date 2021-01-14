@@ -1,0 +1,17 @@
+VeriLen - verified computations of the length spectrum for SnapPy
+
+To test::
+
+    sage -python test.py
+
+To make documentation::
+
+    cd sphinx
+
+    sage -sh
+
+    make html
+
+Making the documentation for the first time might require:
+
+    sage -pip install sphinxcontrib-websupport
