@@ -128,6 +128,18 @@ class SpineEngine(McomplexEngine):
                 info.offset)
 
     def _check_consistency(self, epsilon = 1e-6):
+        for edge in self.mcomplex.Edges:
+            for corner in edge.Corners:
+                tet = corner.Tetrahedron
+                info = self._edgeInfos[tet.Index][corner.Subsimplex]
+                midPoint = compute_midpoint_of_triangle_edge_with_offset(
+                    [ tet.Class[info.perm.image(v)].IdealPoint
+                      for v in [simplex.V0, simplex.V1, simplex.V2] ],
+                    info.offset)
+             
+                if not midPoint.dist(edge.MidPoint) < epsilon:
+                    raise Exception("midpoint", midPoint.dist(edge.MidPoint))
+
         for tet in self.mcomplex.Tetrahedra:
             for perm in t3m.Perm4.S4():
                 v0 = perm.image(simplex.V0)
