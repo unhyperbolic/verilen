@@ -5,7 +5,7 @@ from snappy.snap.kernel_structures import *
 from snappy.snap.t3mlite import simplex
 from snappy.snap import t3mlite as t3m
 
-from upperHalfspace.idealPoint import *
+from snappy.verify.upper_halfspace.ideal_point import *
 from upperHalfspace.finiteTriangle import *
 
 from sage.all import prod, Rational
@@ -18,7 +18,7 @@ class SpineEngine(McomplexEngine):
     >>> from snappy import *
     >>> M = Manifold("o9_24124")
     >>> shapes = M.verify_hyperbolicity(bits_prec = 512)[1]
-    >>> t = SpineEngine.fromManifoldAndShapesMatchingSnapPea(M, shapes)
+    >>> t = SpineEngine.from_manifold_and_shapes(M, shapes)
     >>> t._check_consistency(epsilon = 1e-50)
 
     """
@@ -29,10 +29,11 @@ class SpineEngine(McomplexEngine):
             self.offset = offset
 
     @staticmethod
-    def fromManifoldAndShapesMatchingSnapPea(snappyManifold, shapes):
-        m = t3m.Mcomplex(snappyManifold)
+    def from_manifold_and_shapes(
+            manifold, shapes, normalize_matrices = False, match_kernel = True):
+        m = t3m.Mcomplex(manifold)
         
-        t = TransferKernelStructuresEngine(m, snappyManifold)
+        t = TransferKernelStructuresEngine(m, manifold)
         t.add_shapes(shapes)
         t.choose_and_transfer_generators(
             compute_corners = True, centroid_at_origin = False)
@@ -42,9 +43,15 @@ class SpineEngine(McomplexEngine):
         
         f = FundamentalPolyhedronEngine(m)
         f.unglue()
+
+        if match_kernel:
+            init_verts = f.init_vertices_kernel()
+        else:
+            init_verts = f.init_vertices()
+
         f.visit_tetrahedra_to_compute_vertices(
-            m.ChooseGenInitialTet, f.init_vertices_snappea())
-        f.compute_matrices(normalize_matrices = False)
+            m.ChooseGenInitialTet, init_verts)
+        f.compute_matrices(normalize_matrices = normalize_matrices)
 
         s.add_spine_after_ungluing()
         s.add_finite_spine_triangles()
