@@ -64,7 +64,7 @@ class TilingEngineBase(McomplexEngine):
             [ tet.Class[v].IdealPoint for v in simplex.ZeroSubsimplices])
 
         # Add a tile corresponding to the identity.
-        self._add_initial_tile()
+        self.initial_tile = self._add_initial_tile()
 
     def _add_initial_tile(self):
         tet = self.mcomplex.Tetrahedra[0]

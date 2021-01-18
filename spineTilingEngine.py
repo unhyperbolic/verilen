@@ -182,7 +182,10 @@ def length_spectrum_with_multiples(M, cut_off, bits_prec = 53):
 
     tiles = t.intervalTree.find(RIF(-Infinity, Infinity))
 
-    lengths = [ 2 * acosh(tile.matrix.trace() / sqrt(tile.matrix.det()) / 2) for tile in tiles ]
+    lengths = [ 
+        2 * acosh(tile.matrix.trace() / sqrt(tile.matrix.det()) / 2)
+        for tile in tiles
+        if not tile is t.initial_tile ]
 
     return [ length for length in lengths if length.real() < t.target_radius ]
 
