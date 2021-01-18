@@ -195,6 +195,16 @@ def is_not_parabolic(m, spineEngine):
 
     return False
 
+def length_from_matrix(m):
+     t = m.trace() / sqrt(m.det())
+     if t.real().center() < 0:
+         # Trace only determined up to sign
+         # We prefer the one with positive real part because
+         # SageMath's acosh has undesirable branching behavior.
+         t = -t
+
+     return 2 * acosh(t) / 2
+
 def length_spectrum_with_multiples(M, cut_off, bits_prec = 53):
     
     is_hyp, shapes = M.verify_hyperbolicity(bits_prec = bits_prec)
@@ -209,7 +219,7 @@ def length_spectrum_with_multiples(M, cut_off, bits_prec = 53):
 
     tiles = t.intervalTree.find(RIF(-Infinity, Infinity))
 
-    lengths = [ 2 * acosh(tile.matrix.trace() / sqrt(tile.matrix.det()) / 2)
+    lengths = [ length_from_matrix(tile.matrix)
                 for tile in tiles
                 if (not tile is t.initial_tile) and is_not_parabolic(tile.matrix, t) ]
 
