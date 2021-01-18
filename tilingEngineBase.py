@@ -40,13 +40,6 @@ class TilingEngineBase(McomplexEngine):
             self.matrix = matrix
             self.center = center
 
-            # Give the point (type IdealPoint) in CP^1 (regarded as
-            # one-point compactification) where a vertex of this
-            # tile is located at.
-            # The key is the corresponding vertex in the fundamental
-            # polyhedron (of type snappy.snap.t3mlite.Vertex).
-            self.vertexToIdealPoint = {}
-
             # Pointers to the neighboring tiles.
             # The key is the generator of the face-pairing representation
             # of the fundamental group that the SnapPea kernel is using
@@ -72,6 +65,12 @@ class TilingEngineBase(McomplexEngine):
 
         # Add a tile corresponding to the identity.
         self._add_initial_tile()
+
+    def _add_initial_tile(self):
+        tet = self.mcomplex.Tetrahedra[0]
+        CIF = tet.ShapeParameters[simplex.E01].parent()
+        m = matrix.identity(CIF, 2)
+        return self.add_tile(m)
 
     def are_same_tile(self, center1, center2):
         """
@@ -117,28 +116,13 @@ class TilingEngineBase(McomplexEngine):
 
         return None
 
-    def create_tile_and_add_to_tree(self, m):
+    def create_tile(self, m):
         """
         Given a matrix m taking the fundamental polyhedron to a tile,
-        create the tile and add it to the acceleration structure for
-        later look-up with find_tile.
-
-        This returns the new tile. It does not update adjacency relations.
-        """
+        create the tile, add it to the acceleration structure for
+        later look-up with find_tile and update adjacency relations.
         
-        center = self.baseTetInCenter.translate_PGL(m)
-        tile = TilingEngineBase.Tile(m, center)
-        self.intervalTree.insert(center.key_interval(), tile)
-
-        return tile
-
-    def process_tile(self, tile):
-        """
-        Given a new tile (created with create_tile_and_add_to_tree), update
-        adjacency relations for all existing tiles and compute the
-        vertices of the new tile.
-
-        Returns the list of unglued generators. This is a list of
+        Returns the tile and the list of unglued generators. This is a list of
         generators referring to the face-pairing presentation of the
         fundamental group (as integers with the negative referring to
         the inverse). A generator is in this list, if it takes the new
@@ -146,6 +130,21 @@ class TilingEngineBase(McomplexEngine):
 
         In other words, these are all the generators that need to be applied
         to the new tile to further the tiling.
+        """
+        
+        tile = TilingEngineBase.Tile(
+            m, center = self.baseTetInCenter.translate_PGL(m))
+
+        self.intervalTree.insert(tile.center.key_interval(), tile)
+
+        return tile, self._process_tile(tile)
+
+    def _process_tile(self, tile):
+        """
+        Given a new tile (created with create_tile_and_add_to_tree), update
+        adjacency relations for all existing tiles and compute the
+        vertices of the new tile.
+
         """
 
         unglued_generators = []
@@ -157,26 +156,7 @@ class TilingEngineBase(McomplexEngine):
             if other_tile:
                 tile.generatorToNeighboringTile[g] = other_tile
                 other_tile.generatorToNeighboringTile[-g] = tile
-
-                for (corner, other_corner), perm in self.mcomplex.Generators[g]:
-                    for v in simplex.VerticesOfFaceCounterclockwise[corner.Subsimplex]:
-                        vertex       = corner.Tetrahedron.Class[v]
-                        other_vertex = other_corner.Tetrahedron.Class[perm.image(v)]
-                        
-                        tile.vertexToIdealPoint[vertex] = (
-                                other_tile.vertexToIdealPoint[other_vertex])    
             else:
                 unglued_generators.append(g)
-                
-        for vertex in self.mcomplex.Vertices:
-            if not vertex in tile.vertexToIdealPoint:
-                tile.vertexToIdealPoint[vertex] = apply_Moebius(
-                    tile.matrix, vertex.IdealPoint)
-    
+                    
         return unglued_generators
-
-    def _add_initial_tile(self):
-        tet = self.mcomplex.Tetrahedra[0]
-        CIF = tet.ShapeParameters[simplex.E01].parent()
-        m = matrix.identity(CIF, 2)
-        return self.add_tile(m)

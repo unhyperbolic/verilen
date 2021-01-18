@@ -35,7 +35,7 @@ class SpineTilingEngine(TilingEngineBase):
     >>> M = Manifold("s776")
     >>> M = Manifold("o9_24124")
     >>> shapes = M.verify_hyperbolicity(bits_prec = 512)[1]
-    >>> t = SpineTilingEngine.fromManifoldAndShapesMatchingSnapPea(M, shapes)
+    >>> t = SpineTilingEngine.from_manifold_and_shapes(M, shapes)
 
     >>> tile = t.add_tile(t.mcomplex.GeneratorMatrices[1])
 
@@ -53,9 +53,12 @@ class SpineTilingEngine(TilingEngineBase):
 
 
     @staticmethod
-    def fromManifoldAndShapesMatchingSnapPea(snappyManifold, shapes):
-        e = SpineEngine.fromManifoldAndShapesMatchingSnapPea(
-            snappyManifold, shapes)
+    def from_manifold_and_shapes(
+            manifold, shapes, normalize_matrices = False, match_kernel = True):
+        e = SpineEngine.from_manifold_and_shapes(
+            manifold, shapes,
+            normalize_matrices = normalize_matrices,
+            match_kernel = match_kernel)
         return SpineTilingEngine(e.mcomplex)
 
     def __init__(self, mcomplex):
@@ -73,7 +76,7 @@ class SpineTilingEngine(TilingEngineBase):
         vertices = [
             ProjectivePoint.fromComplexIntervalFieldAndIdealPoint(
                 CIF,
-                tile.vertexToIdealPoint[corner.Tetrahedron.Class[V]])
+                corner.Tetrahedron.Class[V].IdealPoint).translate(tile.matrix)
             for V in simplex.ZeroSubsimplices if V & corner.Subsimplex ]
 
         ideal_triangle = IdealTriangle(vertices)
@@ -90,12 +93,6 @@ class SpineTilingEngine(TilingEngineBase):
                 tile, corner)
             for (corner, other_corner), perm in self.mcomplex.Generators[g])
 
-    def add_initial_tile(self):
-        tet = self.mcomplex.Tetrahedra[0]
-        CIF = tet.ShapeParameters[simplex.E01].parent()
-        m = matrix.identity(CIF, 2)
-        self.add_tile(m, is_initial = True)
-
     def add_tile(self, m, is_initial = False):
         """
         Create and add tile corresponding to matrix m.
@@ -103,9 +100,7 @@ class SpineTilingEngine(TilingEngineBase):
         Keep track of the unglued faces.
         """
 
-        tile = self.create_tile_and_add_to_tree(m)
-        
-        unglued_generators = self.process_tile(tile)
+        tile, unglued_generators = self.create_tile(m)
 
         for g in unglued_generators:
             entry = (self.compute_distance_tile_gen_to_spine(tile, g).lower(),
