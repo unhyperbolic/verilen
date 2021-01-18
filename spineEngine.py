@@ -5,10 +5,9 @@ from snappy.snap.kernel_structures import *
 from snappy.snap.t3mlite import simplex
 from snappy.snap import t3mlite as t3m
 
-from snappy.verify.upper_halfspace.ideal_point import *
-from upperHalfspace.finiteTriangle import *
-
 from sage.all import prod, Rational
+
+from snappy.verify.upper_halfspace.ideal_point import *
 
 __all__ = ['SpineEngine']
 
@@ -54,7 +53,6 @@ class SpineEngine(McomplexEngine):
         f.compute_matrices(normalize_matrices = normalize_matrices)
 
         s.add_spine_after_ungluing()
-        s.add_finite_spine_triangles()
 
         return s
 
@@ -94,14 +92,14 @@ class SpineEngine(McomplexEngine):
         self._add_face_centers()
         self._add_edge_centers()
 
-    def add_finite_spine_triangles(self):
-        for tet in self.mcomplex.Tetrahedra:
-            tet.spineTriangles = {
-                perm : FiniteTriangle([
-                        tet.InCenter,
-                        tet.Class[perm.image(simplex.F3 )].InCenter,
-                        tet.Class[perm.image(simplex.E01)].MidPoint])
-                for perm in t3m.Perm4.A4() }
+#    def add_finite_spine_triangles(self):
+#        for tet in self.mcomplex.Tetrahedra:
+#            tet.spineTriangles = {
+#                perm : FiniteTriangle([
+#                        tet.InCenter,
+#                        tet.Class[perm.image(simplex.F3 )].InCenter,
+#                        tet.Class[perm.image(simplex.E01)].MidPoint])
+#                for perm in t3m.Perm4.A4() }
         
     def _add_tet_centers(self):
         for tet in self.mcomplex.Tetrahedra:
