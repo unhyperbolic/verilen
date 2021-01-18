@@ -7,6 +7,7 @@ from snappy.verify.upper_halfspace.finite_point import *
 from tilingEngineBase import TilingEngineBase
 
 from upperHalfspace.projectivePoint import *
+from upperHalfspace.fixedPoints import *
 
 from spineEngine import *
 
@@ -168,6 +169,32 @@ def has_distance_larger(finPoint, dist):
 
     return False
 
+def is_not_parabolic(m, spineEngine):
+    tr = m.trace() / sqrt(m.det())
+
+    if tr != 2 and tr != -2:
+        return True
+
+    fixed_pts, bounding_halfsphere = (
+        fixed_projective_points_or_bounding_halfsphere_for_matrix(m))
+
+    if not bounding_halfsphere:
+        raise Exception("Could not find bound for fixed point of presumambly parabolic matrix")
+    
+    for tet in spineEngine.mcomplex.Tetrahedra:
+        if not bounding_halfsphere.is_outside(tet.InCenter):
+            raise Exception("Could not bound away fixed points of presumambly parabolic matrix from tet incenter")
+
+    for face in spineEngine.mcomplex.Faces:
+        if not bounding_halfsphere.is_outside(face.InCenter):
+            raise Exception("Could not bound away fixed points of presumambly parabolic matrix from face incenter")
+        
+    for edge in spineEngine.mcomplex.Edges:
+        if not bounding_halfsphere.is_outside(edge.MidPoint):
+            raise Exception("Could not bound away fixed points of presumambly parabolic matrix from edge midpoint")
+
+    return False
+
 def length_spectrum_with_multiples(M, cut_off, bits_prec = 53):
     
     is_hyp, shapes = M.verify_hyperbolicity(bits_prec = bits_prec)
@@ -182,10 +209,9 @@ def length_spectrum_with_multiples(M, cut_off, bits_prec = 53):
 
     tiles = t.intervalTree.find(RIF(-Infinity, Infinity))
 
-    lengths = [ 
-        2 * acosh(tile.matrix.trace() / sqrt(tile.matrix.det()) / 2)
-        for tile in tiles
-        if not tile is t.initial_tile ]
+    lengths = [ 2 * acosh(tile.matrix.trace() / sqrt(tile.matrix.det()) / 2)
+                for tile in tiles
+                if (not tile is t.initial_tile) and is_not_parabolic(tile.matrix, t) ]
 
     return [ length for length in lengths if length.real() < t.target_radius ]
 
