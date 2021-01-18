@@ -213,7 +213,7 @@ def length_spectrum_with_multiples(M, cut_off, bits_prec = 53):
                 for tile in tiles
                 if (not tile is t.initial_tile) and is_not_parabolic(tile.matrix, t) ]
 
-    return [ length for length in lengths if length.real() < t.target_radius ]
+    return [ length for length in lengths if not length.real() > t.target_radius ]
 
 def _doctest():
     import doctest
