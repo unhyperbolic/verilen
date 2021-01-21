@@ -203,7 +203,7 @@ def length_from_matrix(m):
          # SageMath's acosh has undesirable branching behavior.
          t = -t
 
-     return 2 * acosh(t) / 2
+     return 2 * acosh(t / 2)
 
 def length_spectrum_with_multiples(M, cut_off, bits_prec = 53):
     
