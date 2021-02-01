@@ -84,6 +84,8 @@ class SpineTilingEngine(TilingEngineBase):
             for e in simplex.OneSubsimplices:
                 tet.SpineRadius = tet.SpineRadius.max(
                     tet.InCenter.dist(tet.Class[e].MidPoint))
+
+        self.initial_tile.word = []
             
     def finish_tiling(self):
         while self.add_next_tile():
@@ -133,11 +135,13 @@ class SpineTilingEngine(TilingEngineBase):
         """
 
         while self.unglued_generators:
-            tile, g = self.unglued_generators.pop()
+            tile, g = self.unglued_generators.pop(0)
             if not g in tile.generatorToNeighboringTile:
                 m = tile.matrix * self.mcomplex.GeneratorMatrices[g]
                 if self.needs_to_be_added(m):
-                    return self.add_tile(m)
+                    new_tile = self.add_tile(m)
+                    new_tile.word = tile.word + [ g ]
+                    return new_tile
 
 def has_distance_larger(finPoint, dist):
     CIF = finPoint.z.parent()
