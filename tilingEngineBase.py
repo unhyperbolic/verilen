@@ -89,10 +89,10 @@ class TilingEngineBase(McomplexEngine):
         dist = center1.dist(center2)
 
         # I think this can be 2 * R
-        if dist < self.baseTetInRadius:
+        if dist < 2 * self.baseTetInRadius:
             return True
         # And this can be 0.
-        if dist > self.baseTetInRadius:
+        if dist > 0:
             return False
 
         raise Exception(
