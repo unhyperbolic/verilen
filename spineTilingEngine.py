@@ -55,7 +55,7 @@ class SpineTilingEngine(TilingEngineBase):
 
     @staticmethod
     def from_manifold_and_shapes(
-            manifold, shapes, normalize_matrices = False, match_kernel = True):
+            manifold, shapes, normalize_matrices = True, match_kernel = True):
         e = SpineEngine.from_manifold_and_shapes(
             manifold, shapes,
             normalize_matrices = normalize_matrices,

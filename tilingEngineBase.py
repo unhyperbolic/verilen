@@ -109,7 +109,7 @@ class TilingEngineBase(McomplexEngine):
         Return that tile or return None.
         """
         
-        center = self.baseTetInCenter.translate_PGL(m)
+        center = self.baseTetInCenter.translate_PSL(m)
         for tile in self.intervalTree.find(center.key_interval()):
             if self.are_same_tile(center, tile.center):
                 return tile
@@ -133,7 +133,7 @@ class TilingEngineBase(McomplexEngine):
         """
         
         tile = TilingEngineBase.Tile(
-            m, center = self.baseTetInCenter.translate_PGL(m))
+            m, center = self.baseTetInCenter.translate_PSL(m))
 
         self.intervalTree.insert(tile.center.key_interval(), tile)
 
