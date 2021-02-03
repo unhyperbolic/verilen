@@ -85,6 +85,12 @@ class SpineTilingEngine(TilingEngineBase):
                 tet.SpineRadius = tet.SpineRadius.max(
                     tet.InCenter.dist(tet.Class[e].MidPoint))
 
+        for tet in self.mcomplex.Tetrahedra:
+            tet.transform_taking_face_to_0_1_inf = {
+                f : _compute_transform_taking_face_to_0_1_inf(
+                    tet, f, self.CIF)
+                for f in simplex.TwoSubsimplices }
+                
         self.initial_tile.word = []
             
     def finish_tiling(self):
@@ -97,19 +103,11 @@ class SpineTilingEngine(TilingEngineBase):
             for f in simplex.TwoSubsimplices:
                 if not tet.Neighbor[f]:
 
-                    projectivePoints = [
-                        ProjectivePoint.fromComplexIntervalFieldAndIdealPoint(
-                            self.CIF, tet.Class[v].IdealPoint).translate(m)
-                        for v in simplex.ZeroSubsimplices
-                        if v & f ]
-                    
-                    t = _adjoint2(
-                        ProjectivePoint.matrix_taking_0_1_inf_to_given_points(
-                            *projectivePoints))
+                    mt = tet.transform_taking_face_to_0_1_inf[f] * _adjoint2(m)
 
                     for tet1 in self.mcomplex.Tetrahedra:
                         if not has_distance_larger(
-                                tet1.InCenter.translate_PGL(t),
+                                tet1.InCenter.translate_PSL(mt),
                                 tet1.SpineRadius + self.target_radius):
                             return True
 
@@ -145,6 +143,17 @@ class SpineTilingEngine(TilingEngineBase):
 
     def all_tiles(self):
         return self.intervalTree.find(self.RIF(-Infinity, Infinity))
+
+def _compute_transform_taking_face_to_0_1_inf(tet, f, CIF):
+    projectivePoints = [
+        ProjectivePoint.fromComplexIntervalFieldAndIdealPoint(
+            CIF, tet.Class[v].IdealPoint)
+        for v in simplex.ZeroSubsimplices
+        if v & f ]
+
+    m = ProjectivePoint.matrix_taking_0_1_inf_to_given_points(*projectivePoints)
+    
+    return _adjoint2(m / sqrt(m.det()))
 
 def has_distance_larger(finPoint, dist):
     CIF = finPoint.z.parent()
