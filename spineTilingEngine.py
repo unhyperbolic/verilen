@@ -104,11 +104,13 @@ class SpineTilingEngine(TilingEngineBase):
 
     def needs_to_be_added(self, m):
         
+        minv = _adjoint2(m)
+        
         for tet in self.mcomplex.Tetrahedra:
             for f in simplex.TwoSubsimplices:
                 if not tet.Neighbor[f]:
 
-                    mt = tet.transform_taking_face_to_0_1_inf[f] * _adjoint2(m)
+                    mt = tet.transform_taking_face_to_0_1_inf[f] * minv
 
                     for tet1 in self.mcomplex.Tetrahedra:
                         if not has_distance_larger(
