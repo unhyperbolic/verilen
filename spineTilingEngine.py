@@ -55,14 +55,14 @@ class SpineTilingEngine(TilingEngineBase):
 
     @staticmethod
     def from_manifold_and_shapes(
-            manifold, shapes, normalize_matrices = True, match_kernel = True):
+            manifold, shapes, cut_off, normalize_matrices = True, match_kernel = True):
         e = SpineEngine.from_manifold_and_shapes(
             manifold, shapes,
             normalize_matrices = normalize_matrices,
             match_kernel = match_kernel)
-        return SpineTilingEngine(e.mcomplex)
+        return SpineTilingEngine(e.mcomplex, cut_off)
 
-    def __init__(self, mcomplex):
+    def __init__(self, mcomplex, cut_off):
         # A list of pairs (lower bound, tile, generator) of corresponding to
         # unglued faces.
 
@@ -73,6 +73,7 @@ class SpineTilingEngine(TilingEngineBase):
         z = self.mcomplex.Tetrahedra[0].ShapeParameters[simplex.E01]
         self.CIF = z.parent()
         self.RIF = z.real().parent()
+        self.cut_off = cut_off
 
         for tet in self.mcomplex.Tetrahedra:
             tet.SpineRadius = self.RIF(0)
@@ -84,6 +85,8 @@ class SpineTilingEngine(TilingEngineBase):
             for e in simplex.OneSubsimplices:
                 tet.SpineRadius = tet.SpineRadius.max(
                     tet.InCenter.dist(tet.Class[e].MidPoint))
+
+            tet.SpineRadiusPlusCutOff = tet.SpineRadius + self.cut_off
 
         for tet in self.mcomplex.Tetrahedra:
             tet.transform_taking_face_to_0_1_inf = {
@@ -108,7 +111,7 @@ class SpineTilingEngine(TilingEngineBase):
                     for tet1 in self.mcomplex.Tetrahedra:
                         if not has_distance_larger(
                                 tet1.InCenter.translate_PSL(mt),
-                                tet1.SpineRadius + self.target_radius):
+                                tet1.SpineRadiusPlusCutOff):
                             return True
 
         return False
@@ -228,8 +231,7 @@ def get_tiling_engine(M, cut_off, bits_prec = 53):
     
     RIF = RealIntervalField(bits_prec)
 
-    t = SpineTilingEngine.from_manifold_and_shapes(M, shapes)
-    t.target_radius = RIF(cut_off)
+    t = SpineTilingEngine.from_manifold_and_shapes(M, shapes, RIF(cut_off))
     t.finish_tiling()
 
     return t
@@ -242,7 +244,8 @@ def length_spectrum_with_multiples(M, cut_off, bits_prec = 53):
                 if ((not tile is tiling_engine.initial_tile) and
                     is_not_parabolic(tile.matrix, tiling_engine)) ]
 
-    return [ length for length in lengths if not length.real() > tiling_engine.target_radius ]
+    return [ length for length in lengths
+             if not length.real() > tiling_engine.cut_off ]
 
 def _doctest():
     import doctest
