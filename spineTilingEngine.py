@@ -180,7 +180,7 @@ def has_distance_larger(finPoint, distFactor):
     return False
 
 def is_not_parabolic(m, spineEngine):
-    tr = m.trace() / sqrt(m.det())
+    tr = m.trace()
 
     if tr != 2 and tr != -2:
         return True
@@ -206,7 +206,7 @@ def is_not_parabolic(m, spineEngine):
     return False
 
 def length_from_matrix(m):
-     t = m.trace() / sqrt(m.det())
+     t = m.trace()
      if t.real().center() < 0:
          # Trace only determined up to sign
          # We prefer the one with positive real part because
