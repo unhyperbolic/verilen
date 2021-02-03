@@ -143,6 +143,9 @@ class SpineTilingEngine(TilingEngineBase):
                     new_tile.word = tile.word + [ g ]
                     return new_tile
 
+    def all_tiles(self):
+        return self.intervalTree.find(self.RIF(-Infinity, Infinity))
+
 def has_distance_larger(finPoint, dist):
     CIF = finPoint.z.parent()
 
@@ -209,8 +212,7 @@ def length_from_matrix(m):
 
      return 2 * acosh(t / 2)
 
-def length_spectrum_with_multiples(M, cut_off, bits_prec = 53):
-    
+def get_tiling_engine(M, cut_off, bits_prec = 53):
     is_hyp, shapes = M.verify_hyperbolicity(bits_prec = bits_prec)
     if not is_hyp:
         raise ValueError("Manifold does not seem to be hyperbolic.")
@@ -221,13 +223,17 @@ def length_spectrum_with_multiples(M, cut_off, bits_prec = 53):
     t.target_radius = RIF(cut_off)
     t.finish_tiling()
 
-    tiles = t.intervalTree.find(RIF(-Infinity, Infinity))
+    return t
+
+def length_spectrum_with_multiples(M, cut_off, bits_prec = 53):
+    tiling_engine = get_tiling_engine(M, cut_off, bits_prec)
 
     lengths = [ length_from_matrix(tile.matrix)
-                for tile in tiles
-                if (not tile is t.initial_tile) and is_not_parabolic(tile.matrix, t) ]
+                for tile in tiling_engine.all_tiles()
+                if ((not tile is tiling_engine.initial_tile) and
+                    is_not_parabolic(tile.matrix, tiling_engine)) ]
 
-    return [ length for length in lengths if not length.real() > t.target_radius ]
+    return [ length for length in lengths if not length.real() > tiling_engine.target_radius ]
 
 def _doctest():
     import doctest
