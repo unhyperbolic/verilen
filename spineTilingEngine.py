@@ -11,7 +11,7 @@ from upperHalfspace.fixedPoints import *
 
 from spineEngine import *
 
-from sage.all import matrix, sqrt, RealIntervalField, Infinity, acosh
+from sage.all import matrix, sqrt, exp, RealIntervalField, Infinity, acosh
 
 # __all__ = ['SpineTilingEngine']
 
@@ -87,6 +87,8 @@ class SpineTilingEngine(TilingEngineBase):
                     tet.InCenter.dist(tet.Class[e].MidPoint))
 
             tet.SpineRadiusPlusCutOff = tet.SpineRadius + self.cut_off
+            e = exp(tet.SpineRadiusPlusCutOff)
+            tet.CutOffFactor = (e * e - 1) / (2 * e)
 
         for tet in self.mcomplex.Tetrahedra:
             tet.transform_taking_face_to_0_1_inf = {
@@ -111,7 +113,8 @@ class SpineTilingEngine(TilingEngineBase):
                     for tet1 in self.mcomplex.Tetrahedra:
                         if not has_distance_larger(
                                 tet1.InCenter.translate_PSL(mt),
-                                tet1.SpineRadiusPlusCutOff):
+                                tet1.SpineRadiusPlusCutOff,
+                                tet1.CutOffFactor):
                             return True
 
         return False
@@ -158,17 +161,11 @@ def _compute_transform_taking_face_to_0_1_inf(tet, f, CIF):
     
     return _adjoint2(m / sqrt(m.det()))
 
-def has_distance_larger(finPoint, dist):
-    CIF = finPoint.z.parent()
-
-    t = sqrt(  finPoint.z.imag() ** 2
-             + finPoint.t ** 2)
-    pt = FinitePoint(CIF(finPoint.z.real(), 0), t)
-
-    d = finPoint.dist(pt)
-
-    if d > dist:
+def has_distance_larger(finPoint, dist, distFactor):
+    if abs(finPoint.z.imag()) > finPoint.t * distFactor:
         return True
+
+    CIF = finPoint.z.parent()
 
     m = matrix(CIF, [[0,-1],[1,-1]])
 
