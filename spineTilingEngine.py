@@ -2,7 +2,7 @@ from snappy.snap.t3mlite import simplex
 
 from snappy.verify.mathHelpers import interval_aware_min
 from snappy.verify.upper_halfspace.ideal_point import _adjoint2
-from snappy.verify.upper_halfspace.finite_point import *
+from snappy.verify.upper_halfspace.finite_point import FinitePoint, _abs_sqr
 
 from tilingEngineBase import TilingEngineBase
 
@@ -175,11 +175,17 @@ def has_distance_larger(finPoint, distFactor):
 
     RIF = finPoint.z.real().parent()
     if (finPoint.z.real() - RIF(0.5)) ** 2 + finPoint.z.imag() ** 2 + finPoint.t ** 2 < RIF(0.25):
-        CIF = finPoint.z.parent()
-        f = finPoint.translate_PSL(matrix(CIF,[[-1,1],[-1,0]]))
+        f = _rotate_helper(finPoint)
         return abs(f.z) > f.t * distFactor
 
     return False
+
+def _rotate_helper(finPoint):
+    tSqr = finPoint.t ** 2
+    num   = (finPoint.z - 1) * finPoint.z.conjugate() + tSqr
+    denom = _abs_sqr(finPoint.z) + tSqr
+    
+    return FinitePoint(num / denom, finPoint.t / denom)
 
 def is_not_parabolic(m, spineEngine):
     tr = m.trace()
