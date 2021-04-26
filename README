@@ -1,10 +1,21 @@
-VeriLen - verified computations of the length spectrum for SnapPy
+VeriLen - verified computations of the length spectrum for SnapPy (also requires SageMath)
 
-To test::
+Experimental code. Work in progress. Don't trust results yet.
+
+Example (can report the same length multiple times):
+
+>>> from spineTilingEngine import *
+>>> length_spectrum_with_multiples(Manifold("m015"), cut_off = 0.6, bits_prec = 212)
+[0.5623991486459236930241015281357565995840464514881329253515? - 2.8154308852059060699670433033687420900160494970250694035073?*I,
+ 0.5623991486459236930241015281357565995840464514881329253515? - 2.8154308852059060699670433033687420900160494970250694035073?*I,
+ 0.562399148645923693024101528135756599584046451488132925351461? - 2.815430885205906069967043303368742090016049497025069403507245?*I,
+ 0.562399148645923693024101528135756599584046451488132925351461? - 2.815430885205906069967043303368742090016049497025069403507245?*I]
+
+Automated tests::
 
     sage -python test.py
 
-To make documentation::
+Generate documentation documentation::
 
     cd sphinx
 
